@@ -1,0 +1,1 @@
+{"name":"sorok-murajaa","version":"1.0.0","private":true,"description":"Самопроверка сорока хадисов имама аль-Аджурри","scripts":{"check":"node --check dist/app.js"}}

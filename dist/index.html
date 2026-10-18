@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5ef"><meta name="description" content="Повторяйте 40 хадисов имама аль-Аджурри на арабском: вспоминайте наизусть, открывайте строки и сверяйтесь с переводом.">
+  <title>Сорок — повторение хадисов</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c5 0 7 12 12 12h3m-4-4 4 4-4 4M3 18h3c2 0 4-3 5-6m3-4c1-1 2-2 4-2h3m-4-4 4 4-4 4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14M10 3H4v17h17v-6"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
+</defs></svg>
+<div id="drawer-overlay" class="drawer-overlay" hidden></div>
+<aside class="sidebar" id="sidebar" aria-label="Библиотека хадисов">
+  <a class="brand" href="#1" aria-label="Сорок — к первому хадису"><span class="brand-mark">٤٠</span><span><span class="brand-name">сорок<span class="brand-dot">.</span></span><span class="brand-caption">ВСПОМИНАТЬ. СОХРАНЯТЬ.</span></span></a>
+  <button id="close-menu" class="icon-button mobile-close" aria-label="Закрыть меню"><svg><use href="#i-close"/></svg></button>
+  <div class="sidebar-heading"><span>ВАША БИБЛИОТЕКА</span><span class="count-badge">40</span></div>
+  <label class="search"><svg><use href="#i-search"/></svg><input id="search" type="search" placeholder="Номер или тема хадиса" autocomplete="off" aria-label="Найти хадис по номеру или теме"><kbd>/</kbd></label>
+  <nav id="hadith-list" class="hadith-list" aria-label="Выберите хадис"><p class="loading">Загрузка библиотеки…</p></nav>
+  <div class="sidebar-bottom"><div class="sidebar-progress-label"><span>Повторено сегодня</span><strong id="today-count">0 <span>/ 40</span></strong></div><div class="progress-track"><span id="today-bar"></span></div><p><span class="status-dot"></span> Ваш прогресс сохраняется на устройстве</p></div>
+</aside>
+<main>
+  <header class="topbar"><div class="breadcrumb"><button id="open-menu" class="icon-button mobile-menu" aria-label="Выбрать хадис"><svg><use href="#i-menu"/></svg></button><svg class="desktop-book"><use href="#i-book"/></svg><span>Библиотека</span><span class="crumb-slash">/</span><span class="crumb-current">Самопроверка</span></div><button id="about-button" class="text-button"><svg><use href="#i-info"/></svg><span>О сборнике</span></button></header>
+  <div class="workspace">
+    <section class="intro"><div><div class="eyebrow"><span></span> МАЛЕНЬКИМИ ШАГАМИ К ПРОЧНОМУ ЗНАНИЮ</div><h1>Вспомните.<br><em>Затем проверьте.</em></h1><p>Прочитайте по памяти. Откройте строку. Повторите.<br class="desktop-break"> В своём темпе, с вниманием к каждому слову.</p></div><div class="intro-ornament" aria-hidden="true"><svg viewBox="0 0 170 170"><path d="M85 5 105 35 140 30 135 65 165 85 135 105 140 140 105 135 85 165 65 135 30 140 35 105 5 85 35 65 30 30 65 35Z"/><path d="m85 18 19 29 31-4-4 31 29 11-29 19 4 31-31-4-19 29-19-29-31 4 4-31-29-19 29-11-4-31 31 4Z"/></svg><span lang="ar" dir="rtl">الأربعون<br>حديثًا</span></div></section>
+    <section class="session-toolbar" aria-label="Настройки повторения"><div class="session-label"><span class="status-dot"></span> ВАША ПРАКТИКА</div><button id="random" class="text-button"><svg><use href="#i-shuffle"/></svg>Случайный хадис</button></section>
+    <article id="practice-card" class="practice-card" aria-busy="true">
+      <header class="card-heading"><div class="hadith-number" id="hadith-number">01</div><div class="hadith-heading"><div class="overline" id="hadith-label">ХАДИС 1 ИЗ 40</div><h2 id="hadith-title">Понимание религии</h2><div class="arabic-title" id="arabic-title" lang="ar" dir="rtl">في طلب العلم</div></div><span class="chapter-symbol" aria-hidden="true">✧</span></header>
+      <div class="card-tabs" role="tablist" aria-label="Режим просмотра"><button class="tab active" id="practice-tab" role="tab" aria-selected="true" aria-controls="practice-panel">Самопроверка</button><button class="tab" id="translation-tab" role="tab" aria-selected="false" aria-controls="translation-panel" tabindex="-1">Русский перевод</button><div class="size-control" aria-label="Размер арабского текста"><button id="smaller" aria-label="Уменьшить арабский текст">А−</button><button id="larger" aria-label="Увеличить арабский текст">А+</button></div></div>
+      <section id="practice-panel" role="tabpanel" aria-labelledby="practice-tab" class="practice-panel">
+        <div class="reading-meta"><span id="reveal-status" role="status" aria-live="polite">Открыто 0 из 4 строк</span><span class="source-label">АРАБСКИЙ ОРИГИНАЛ</span></div>
+        <div class="reading-progress"><span id="reading-bar"></span></div>
+        <div id="lines" class="lines" lang="ar" dir="rtl"></div>
+        <div id="memory-hint" class="memory-hint"><span class="hint-star">✧</span><p>Сначала произнесите по памяти,<br><strong>затем откройте следующую строку.</strong></p></div>
+        <div class="reading-actions"><div class="reveal-step"><span>Открывать по</span><div class="segmented" role="group" aria-label="Сколько строк открывать"><button class="selected" id="step-one" aria-pressed="true">1 строке</button><button id="step-two" aria-pressed="false">2 строки</button></div></div><button id="reveal" class="primary-button" disabled><svg><use href="#i-eye"/></svg><span>Открыть строку</span><svg><use href="#i-arrow"/></svg></button></div>
+        <div class="secondary-actions"><button id="restart" class="text-button" disabled><svg><use href="#i-reset"/></svg>Начать заново</button><button id="show-all" class="text-button" disabled>Открыть весь хадис</button></div>
+      </section>
+      <section id="translation-panel" role="tabpanel" aria-labelledby="translation-tab" class="translation-panel" hidden><div class="translation-caption"><span class="language-badge">RU</span><span>Перевод Абу Аделя</span></div><div id="translation-text"></div><a id="translation-source" class="source-link" href="assets/russian-translation.pdf" target="_blank" rel="noopener">Открыть страницу в книге <svg><use href="#i-link"/></svg></a></section>
+      <footer class="card-footer"><span><svg><use href="#i-book"/></svg>Имам аль-Аджурри</span><a id="arabic-source" href="assets/arabic-original.pdf#page=6" target="_blank" rel="noopener">Страница оригинала <svg><use href="#i-link"/></svg></a></footer>
+    </article>
+    <div class="session-bottom"><div id="completion-state" class="completion-state"><span class="completion-icon"><svg><use href="#i-check"/></svg></span><div><strong id="completion-title">Получилось вспомнить?</strong><span id="completion-description">Отметьте хадис после самостоятельного повторения.</span></div></div><button id="mark-done" class="outline-button" disabled><svg><use href="#i-check"/></svg><span>Отметить повторённым</span></button></div>
+    <nav class="chapter-navigation" aria-label="Переход между хадисами"><button id="previous" class="text-button"><svg class="flipped"><use href="#i-arrow"/></svg>Предыдущий</button><span id="page-position">01 <span>/ 40</span></span><button id="next" class="text-button">Следующий<svg><use href="#i-arrow"/></svg></button></nav>
+    <footer class="page-footer"><span>Знание сохраняется повторением.</span><span>40 хадисов имама аль-Аджурри</span></footer>
+  </div>
+</main>
+<dialog id="about-dialog"><button id="close-about" class="icon-button dialog-close" aria-label="Закрыть"><svg><use href="#i-close"/></svg></button><div class="eyebrow">О СБОРНИКЕ</div><h2>Сорок хадисов<br>имама аль-Аджурри</h2><p>Тренажёр для самостоятельного повторения на арабском языке. Сначала произнесите текст по памяти, затем открывайте оригинал по одной или две строки и сверяйте себя.</p><p>Арабские строки взяты прямо из предоставленного PDF: сохранены текст, огласовки, иснады и дополнительные сообщения раздела. Нумерация хадисов соответствует сорока разделам сборника. На телефоне длинная строка переносится между словами; счётчик соответствует строкам книги.</p><p>Русский перевод — Абу Адель, из предоставленной книги. В карточках приведён перевод хадиса без следующего за ним авторского разъяснения; примечания и оценки достоверности доступны в полной книге.</p><div class="source-buttons"><a href="assets/arabic-original.pdf" target="_blank" rel="noopener">Арабский оригинал <svg><use href="#i-link"/></svg></a><a href="assets/russian-translation.pdf" target="_blank" rel="noopener">Русская книга <svg><use href="#i-link"/></svg></a></div><p class="small-print">Отметки сохраняются только в этом браузере. «Повторён» — ваша самооценка: сайт не записывает голос и не оценивает произношение.</p></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+</body></html>
