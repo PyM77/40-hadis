@@ -9,3 +9,10 @@
 .mobile-parts{display:none}
 @media(max-width:800px){.sidebar{visibility:hidden;pointer-events:none}.sidebar.open{visibility:visible;pointer-events:auto}}
 @media(max-width:600px){.arabic-line:has(.mobile-parts) .line-image-wrap{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.mobile-parts{display:flex;flex-direction:column;align-items:flex-start;gap:10px;width:100%;padding:7px 0}.mobile-parts svg{max-width:100%;height:auto;fill:none;stroke:none;flex-shrink:0;mix-blend-mode:multiply;overflow:hidden}}
+/* Native Arabic text. The local Amiri font preserves shaping and vocalization. */
+@font-face{font-family:'Amiri Reading';src:url('assets/fonts/Amiri-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+.arabic-content{font-family:'Amiri Reading','Amiri',serif;font-size:calc(32px * var(--arabic-scale,1));font-weight:400;line-height:2.05;letter-spacing:normal;word-spacing:normal;font-synthesis:none;font-kerning:normal;text-align:right;direction:rtl;unicode-bidi:plaintext;margin:0;width:100%;min-width:0;overflow-wrap:anywhere;user-select:text;white-space:normal;color:#263d36}
+.arabic-line{min-height:calc(66px * var(--arabic-scale));padding-top:4px;padding-bottom:4px;align-items:center}
+.arabic-content::selection{background:#dce8c8;color:#203d32}
+.arabic-measure{position:fixed!important;left:-100000px;top:0;visibility:hidden!important;pointer-events:none;width:max-content!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important;contain:layout style}
+@media(max-width:600px){.arabic-content{font-size:calc(29px * var(--arabic-scale,1));line-height:2.1}.arabic-line{min-height:calc(61px * var(--arabic-scale));padding-top:4px;padding-bottom:4px}}

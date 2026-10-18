@@ -97,3 +97,8 @@ shutil.copyfile(ar_source,ASSETS/'arabic-original.pdf');shutil.copyfile(ru_sourc
 print('Created',len(data),'hadiths;',sum(len(h['lines']) for h in data),'lines')
 print('Footers',footers)
 for h in data:print(h['id'],len(h['lines']),len(h['translation']),h['translation'][:70],h['translation'][-70:])
+
+# Keep the reviewed native transcription in the deployable library after
+# regenerating PDF metadata and translation. OCR is never a production source.
+import subprocess
+subprocess.run([__import__('sys').executable,str(Path(__file__).with_name('rebuild_text.py'))],check=True)

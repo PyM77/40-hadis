@@ -2,3 +2,4 @@
 node_modules/
 .openai/local/
 *.tar.gz
+__pycache__/
