@@ -10,7 +10,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(Amiri-Regular.ttf) format('truetype');
+  src: url(Amiri-Regular.ttf?v=reference-1) format('truetype');
 }
 @font-face {
   font-family: 'Amiri';
