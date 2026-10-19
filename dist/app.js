@@ -65,25 +65,32 @@ function renderProgress() {
 }
 // The reveal boundary is stored in words, never in visual lines. Reflowing or
 // changing the font cannot reveal new words or lose an already opened passage.
+function appendArabicPassage(target, card, start, end) {
+  for (const part of arabicPassageParts(card.arabicText,start,end,card.arabicSpeechRanges)) {
+    if (part.speech) {
+      const span=document.createElement('span');span.className='hadith-speech';span.textContent=part.text;target.append(span);
+    } else target.append(document.createTextNode(part.text));
+  }
+}
 function wrapWords(words, measure, width) {
   const rows = [];
   let row = [];
   for (const word of words) {
-    measure.textContent = [...row, word].join(' ');
+    measure.textContent = [...row, word].map(token=>token.text).join(' ');
     if (row.length && measure.getBoundingClientRect().width > width) {
-      rows.push({ text: row.join(' '), words: row.length }); row = [word];
+      rows.push({ start: row[0].start, end: row.at(-1).end, words: row.length }); row = [word];
     } else row.push(word);
   }
-  if (row.length) rows.push({ text: row.join(' '), words: row.length });
+  if (row.length) rows.push({ start: row[0].start, end: row.at(-1).end, words: row.length });
   return rows;
 }
 function renderArabic() {
   if (!data.length) return;
-  const target = $('arabic-text'), text = data[current-1].arabicText;
+  const target = $('arabic-text'), card = data[current-1], text = card.arabicText;
   target.style.setProperty('--arabic-scale',scale);
   $('practice-tools').hidden = mode !== 'practice';
-  if (mode === 'reading') { target.textContent = text; return; }
-  const words = text.trim().split(/\s+/u);
+  if (mode === 'reading') { target.replaceChildren(); appendArabicPassage(target,card,0,text.length); return; }
+  const words = [...text.matchAll(/\S+/gu)].map(match=>({text:match[0],start:match.index,end:match.index+match[0].length}));
   revealed = Math.min(revealed,words.length);
   const measure = document.createElement('span'); measure.className = 'arabic-text arabic-measure';
   measure.dir = 'rtl'; measure.lang = 'ar'; measure.setAttribute('aria-hidden','true');
@@ -96,7 +103,7 @@ function renderArabic() {
   pendingRows = wrapWords(words.slice(revealed),measure,width); measure.remove();
   const fragment = document.createDocumentFragment();
   for (const line of opened) {
-    const p = document.createElement('p'); p.className = 'arabic-row'; p.textContent = line.text; fragment.append(p);
+    const p = document.createElement('p'); p.className = 'arabic-row'; appendArabicPassage(p,card,line.start,line.end); fragment.append(p);
   }
   // One placeholder keeps the next-step control near the recalled passage.
   for (let i=0;i<Math.min(1,pendingRows.length);i++) {
@@ -222,7 +229,7 @@ const progress=document.createElement('p');progress.id='menu-progress';progress.
 const random=document.createElement('button');random.type='button';random.id='random';random.className='menu-random';random.textContent='Случайный хадис ↗';
 random.addEventListener('click',()=>{if(!data.length)return;let id=1+Math.floor(Math.random()*39);if(id>=current)id++;select(id);closeSidebar();});
 $('sidebar-content').insertBefore(random,progress);
-fetch('assets/hadiths.json?v=reference-arabic-2').then(r=>{if(!r.ok)throw Error('load');return r.json();}).then(items=>{
+fetch('assets/hadiths.json?v=speech-1').then(r=>{if(!r.ok)throw Error('load');return r.json();}).then(items=>{
   if(!Array.isArray(items)||items.length!==40||items.some((h,i)=>h.id!==i+1||typeof h.arabicText!=='string'||!h.arabicText.trim()))throw Error('library');
   data=items;const id=Number(location.hash.slice(1));select(validId(id)?id:saved.last);$('card-container').setAttribute('aria-busy','false');document.fonts.ready.then(scheduleLayout);
 }).catch(()=>{

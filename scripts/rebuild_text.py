@@ -22,18 +22,41 @@ def validate(records):
         # The selected reference contains intentional ellipses and unnormalized
         # diacritics. Do not enforce PDF length/completeness or normalize text.
 
+def speech_ranges(records):
+    annotations=json.loads((ROOT/'content/arabic-speech.json').read_text())
+    if [h['id'] for h in annotations]!=[h['id'] for h in records]:
+        raise ValueError('Expected speech annotations for all 40 cards')
+    result=[]
+    for card,annotation in zip(records,annotations):
+        previous_end=0
+        spans=[]
+        for span in annotation['ranges']:
+            start,end=span['start'],span['end']
+            if not (previous_end<=start<end<=len(card['text'])) or card['text'][start:end]!=span['text']:
+                raise ValueError(f'Card {card["id"]}: stale or overlapping speech annotation')
+            # Browser offsets use UTF-16 code units, independent of Python's
+            # Unicode indexing (including any future non-BMP characters).
+            offset=lambda n:len(card['text'][:n].encode('utf-16-le'))//2
+            spans.append({'start':offset(start),'end':offset(end)})
+            previous_end=end
+        if not spans:raise ValueError(f'Card {card["id"]}: speech annotation missing')
+        result.append(spans)
+    return result
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source',type=Path,default=ROOT/'content/arabic-reference.json')
     p.add_argument('--cards',type=Path,default=ROOT/'dist/assets/hadiths.json')
     args=p.parse_args()
     reference=json.loads(args.source.read_text());source=reference['cards'];validate(source)
+    highlights=speech_ranges(source)
     cards=json.loads(args.cards.read_text())
     if [h['id'] for h in cards]!=list(range(1,41)):
         raise ValueError('Runtime card order is invalid')
-    for card,review in zip(cards,source):
+    for card,review,spans in zip(cards,source,highlights):
         card['arabicText']=review['text']
         card['arabicTextSource']=reference['repository']
+        card['arabicSpeechRanges']=spans
         for old in ['arabic','lines','arabicReports']:card.pop(old,None)
     args.cards.write_text(json.dumps(cards,ensure_ascii=False,indent=2)+'\n')
     print(f'Built {len(cards)} reference cards, {sum(len(h["arabicText"].split()) for h in cards)} Arabic words')

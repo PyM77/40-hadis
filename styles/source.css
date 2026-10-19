@@ -100,3 +100,6 @@ button:disabled {opacity:.4;cursor:not-allowed;}
 .menu-progress {padding:12px 20px;border-top:1px solid #c0a16b26;color:#947747;font-size:11px;}
 .menu-random {padding:13px 20px;text-align:left;border-top:1px solid #c0a16b26;color:#064e3b;font-size:12px;font-weight:600;}
 @media(prefers-reduced-motion:reduce) {*,*::before,*::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+
+/* Direct reported speech; narrator chains keep the original emerald color. */
+.hadith-speech {color:#b91c1c;}

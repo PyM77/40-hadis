@@ -4,7 +4,7 @@
   "private": true,
   "description": "Самопроверка сорока хадисов имама аль-Аджурри",
   "scripts": {
-    "check": "node --check dist/app.js && python3 scripts/check_content.py",
+    "check": "node --check dist/app.js && node --check dist/arabic-passage.js && python3 scripts/check_content.py && node scripts/check_speech.cjs",
     "build": "python3 scripts/build_styles.py"
   }
 }

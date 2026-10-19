@@ -23,7 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Check JavaScript
-        run: node --check dist/app.js
+        run: |
+          node --check dist/app.js
+          node --check dist/arabic-passage.js
+          node scripts/check_speech.cjs
       - name: Check text library
         run: python3 scripts/check_content.py
       - name: Check compiled design
