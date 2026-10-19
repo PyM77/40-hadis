@@ -1,61 +1,334 @@
 <!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f5ef"><meta name="description" content="Повторяйте 40 хадисов имама аль-Аджурри на арабском: вспоминайте наизусть, открывайте строки и сверяйтесь с переводом.">
-  <title>Сорок — повторение хадисов</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/Amiri-Regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="stylesheet" href="style.css?v=arabic-text-1">
-  <script src="app.js?v=arabic-text-1" defer></script>
-</head>
-<body>
-<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
-<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
-<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
-<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
-<symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></symbol>
-<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
-<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c5 0 7 12 12 12h3m-4-4 4 4-4 4M3 18h3c2 0 4-3 5-6m3-4c1-1 2-2 4-2h3m-4-4 4 4-4 4"/></symbol>
-<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
-<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
-<symbol id="i-link" viewBox="0 0 24 24"><path d="M14 3h7v7m0-7L10 14M10 3H4v17h17v-6"/></symbol>
-<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
-</defs></svg>
-<div id="drawer-overlay" class="drawer-overlay" hidden></div>
-<aside class="sidebar" id="sidebar" aria-label="Библиотека хадисов">
-  <a class="brand" href="#1" aria-label="Сорок — к первому хадису"><span class="brand-mark">٤٠</span><span><span class="brand-name">сорок<span class="brand-dot">.</span></span><span class="brand-caption">ВСПОМИНАТЬ. СОХРАНЯТЬ.</span></span></a>
-  <button id="close-menu" class="icon-button mobile-close" aria-label="Закрыть меню"><svg><use href="#i-close"/></svg></button>
-  <div class="sidebar-heading"><span>ВАША БИБЛИОТЕКА</span><span class="count-badge">40</span></div>
-  <label class="search"><svg><use href="#i-search"/></svg><input id="search" type="search" placeholder="Номер или тема хадиса" autocomplete="off" aria-label="Найти хадис по номеру или теме"><kbd>/</kbd></label>
-  <nav id="hadith-list" class="hadith-list" aria-label="Выберите хадис"><p class="loading">Загрузка библиотеки…</p></nav>
-  <div class="sidebar-bottom"><div class="sidebar-progress-label"><span>Повторено сегодня</span><strong id="today-count">0 <span>/ 40</span></strong></div><div class="progress-track"><span id="today-bar"></span></div><p><span class="status-dot"></span> Ваш прогресс сохраняется на устройстве</p></div>
-</aside>
-<main>
-  <header class="topbar"><div class="breadcrumb"><button id="open-menu" class="icon-button mobile-menu" aria-label="Выбрать хадис"><svg><use href="#i-menu"/></svg></button><svg class="desktop-book"><use href="#i-book"/></svg><span>Библиотека</span><span class="crumb-slash">/</span><span class="crumb-current">Самопроверка</span></div><button id="about-button" class="text-button"><svg><use href="#i-info"/></svg><span>О сборнике</span></button></header>
-  <div class="workspace">
-    <section class="intro"><div><div class="eyebrow"><span></span> МАЛЕНЬКИМИ ШАГАМИ К ПРОЧНОМУ ЗНАНИЮ</div><h1>Вспомните.<br><em>Затем проверьте.</em></h1><p>Прочитайте по памяти. Откройте строку. Повторите.<br class="desktop-break"> В своём темпе, с вниманием к каждому слову.</p></div><div class="intro-ornament" aria-hidden="true"><svg viewBox="0 0 170 170"><path d="M85 5 105 35 140 30 135 65 165 85 135 105 140 140 105 135 85 165 65 135 30 140 35 105 5 85 35 65 30 30 65 35Z"/><path d="m85 18 19 29 31-4-4 31 29 11-29 19 4 31-31-4-19 29-19-29-31 4 4-31-29-19 29-11-4-31 31 4Z"/></svg><span lang="ar" dir="rtl">الأربعون<br>حديثًا</span></div></section>
-    <section class="session-toolbar" aria-label="Настройки повторения"><div class="session-label"><span class="status-dot"></span> ВАША ПРАКТИКА</div><button id="random" class="text-button"><svg><use href="#i-shuffle"/></svg>Случайный хадис</button></section>
-    <article id="practice-card" class="practice-card" aria-busy="true">
-      <header class="card-heading"><div class="hadith-number" id="hadith-number">01</div><div class="hadith-heading"><div class="overline" id="hadith-label">ХАДИС 1 ИЗ 40</div><h2 id="hadith-title">Понимание религии</h2><div class="arabic-title" id="arabic-title" lang="ar" dir="rtl">في طلب العلم</div></div><span class="chapter-symbol" aria-hidden="true">✧</span></header>
-      <div class="card-tabs" role="tablist" aria-label="Режим просмотра"><button class="tab active" id="practice-tab" role="tab" aria-selected="true" aria-controls="practice-panel">Самопроверка</button><button class="tab" id="translation-tab" role="tab" aria-selected="false" aria-controls="translation-panel" tabindex="-1">Русский перевод</button><div class="size-control" aria-label="Размер арабского текста"><button id="smaller" aria-label="Уменьшить арабский текст">А−</button><button id="larger" aria-label="Увеличить арабский текст">А+</button></div></div>
-      <section id="practice-panel" role="tabpanel" aria-labelledby="practice-tab" class="practice-panel">
-        <div class="reading-meta"><span id="reveal-status" role="status" aria-live="polite">Открыто 0 из 4 строк</span><span class="source-label">АРАБСКИЙ ОРИГИНАЛ</span></div>
-        <div class="reading-progress"><span id="reading-bar"></span></div>
-        <div id="lines" class="lines" lang="ar" dir="rtl"></div>
-        <div id="memory-hint" class="memory-hint"><span class="hint-star">✧</span><p>Сначала произнесите по памяти,<br><strong>затем откройте следующую строку.</strong></p></div>
-        <div class="reading-actions"><div class="reveal-step"><span>Открывать по</span><div class="segmented" role="group" aria-label="Сколько строк открывать"><button class="selected" id="step-one" aria-pressed="true">1 строке</button><button id="step-two" aria-pressed="false">2 строки</button></div></div><button id="reveal" class="primary-button" disabled><svg><use href="#i-eye"/></svg><span>Открыть строку</span><svg><use href="#i-arrow"/></svg></button></div>
-        <div class="secondary-actions"><button id="restart" class="text-button" disabled><svg><use href="#i-reset"/></svg>Начать заново</button><button id="show-all" class="text-button" disabled>Открыть весь хадис</button></div>
-      </section>
-      <section id="translation-panel" role="tabpanel" aria-labelledby="translation-tab" class="translation-panel" hidden><div class="translation-caption"><span class="language-badge">RU</span><span>Перевод Абу Аделя</span></div><div id="translation-text"></div><a id="translation-source" class="source-link" href="assets/russian-translation.pdf" target="_blank" rel="noopener">Открыть страницу в книге <svg><use href="#i-link"/></svg></a></section>
-      <footer class="card-footer"><span><svg><use href="#i-book"/></svg>Имам аль-Аджурри</span><a id="arabic-source" href="assets/arabic-original.pdf#page=6" target="_blank" rel="noopener">Страница оригинала <svg><use href="#i-link"/></svg></a></footer>
-    </article>
-    <div class="session-bottom"><div id="completion-state" class="completion-state"><span class="completion-icon"><svg><use href="#i-check"/></svg></span><div><strong id="completion-title">Получилось вспомнить?</strong><span id="completion-description">Отметьте хадис после самостоятельного повторения.</span></div></div><button id="mark-done" class="outline-button" disabled><svg><use href="#i-check"/></svg><span>Отметить повторённым</span></button></div>
-    <nav class="chapter-navigation" aria-label="Переход между хадисами"><button id="previous" class="text-button"><svg class="flipped"><use href="#i-arrow"/></svg>Предыдущий</button><span id="page-position">01 <span>/ 40</span></span><button id="next" class="text-button">Следующий<svg><use href="#i-arrow"/></svg></button></nav>
-    <footer class="page-footer"><span>Знание сохраняется повторением.</span><span>40 хадисов имама аль-Аджурри</span></footer>
-  </div>
-</main>
-<dialog id="about-dialog"><button id="close-about" class="icon-button dialog-close" aria-label="Закрыть"><svg><use href="#i-close"/></svg></button><div class="eyebrow">О СБОРНИКЕ</div><h2>Сорок хадисов<br>имама аль-Аджурри</h2><p>Тренажёр для самостоятельного повторения на арабском языке. Сначала произнесите текст по памяти, затем открывайте оригинал по одной или две строки и сверяйте себя.</p><p>Арабский текст набран по предоставленному изданию с использованием цифрового текста для сверки. Сохранены иснады и дополнительные сообщения разделов; оригинал доступен по ссылке ниже. Текст можно выделять и копировать. Строки подстраиваются под экран и размер шрифта, поэтому их число может меняться. Нумерация соответствует сорока разделам сборника.</p><p>Русский перевод — Абу Адель, из предоставленной книги. В карточках приведён перевод хадиса без следующего за ним авторского разъяснения; примечания и оценки достоверности доступны в полной книге.</p><div class="source-buttons"><a href="assets/arabic-original.pdf" target="_blank" rel="noopener">Арабский оригинал <svg><use href="#i-link"/></svg></a><a href="assets/russian-translation.pdf" target="_blank" rel="noopener">Русская книга <svg><use href="#i-link"/></svg></a></div><p class="small-print">Отметки сохраняются только в этом браузере. «Повторён» — ваша самооценка: сайт не записывает голос и не оценивает произношение.</p></dialog>
-<div id="toast" class="toast" role="status" hidden></div>
-</body></html>
+<html lang="ru" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>40 Хадисов - аль-Аджурри</title>
+
+    <!-- Настройки для PWA (Apple) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="40 Хадисов" />
+
+    <!-- Иконка из предоставленного образца -->
+    <link rel="apple-touch-icon" href="assets/icon.png" />
+    <link rel="icon" type="image/png" href="assets/icon.png" />
+
+    <!-- Динамический манифест для Android -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#064e3b">
+    <meta name="description" content="40 хадисов имама аль-Аджурри: чтение и самопроверка на арабском с открытием одной или двух строк и русским переводом.">
+
+    <link rel="preload" href="assets/fonts/Amiri-Regular.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="assets/fonts/reference-fonts.css">
+    <link rel="stylesheet" href="style.css?v=reference-1">
+    <script src="app.js?v=reference-1" defer></script>
+  </head>
+  <body
+    class="text-slate-800 h-screen flex flex-col overflow-hidden selection:bg-[#c0a16b] selection:text-white"
+  >
+
+
+    <!-- Шапка приложения -->
+    <header
+      class="bg-[#064e3b] text-white shadow-lg z-20 relative border-b-4 border-[#c0a16b]"
+    >
+      <!-- Декоративный паттерн в шапке -->
+      <div
+        class="absolute inset-0 opacity-10 pointer-events-none"
+        style="
+          background-image: url(&quot;data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='%23ffffff'/%3E%3C/svg%3E&quot;);
+        "
+      ></div>
+
+      <div
+        class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center relative z-10"
+      >
+        <div class="flex items-center space-x-3">
+          <button
+            id="open-menu" aria-controls="sidebar" aria-expanded="false"
+            class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition active:scale-95"
+            aria-label="Меню"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h7"
+              ></path>
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-lg font-bold tracking-wide font-serif">
+              Сорок Хадисов
+            </h1>
+            <p
+              class="text-[11px] text-[#c0a16b] font-medium tracking-wider uppercase"
+            >
+              Имам аль-Аджурри
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span
+            class="text-xs bg-black/30 px-3 py-1.5 rounded-full font-bold shadow-inner"
+            id="counter"
+            >1 / 40</span
+          >
+        </div>
+      </div>
+    </header>
+
+    <!-- Боковое меню -->
+    <div
+      id="sidebar" role="dialog" aria-modal="true" aria-label="Содержание" aria-hidden="true"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden transition-opacity opacity-0 pointer-events-none"
+    >
+      <div
+        class="absolute left-0 top-0 bottom-0 w-[85%] max-w-sm bg-[#fdfbf7] shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300"
+        id="sidebar-content"
+      >
+        <div
+          class="p-5 bg-[#064e3b] text-white flex justify-between items-center border-b-4 border-[#c0a16b]"
+        >
+          <h2 class="font-bold text-lg font-serif">Содержание</h2>
+          <button
+            id="close-menu" aria-label="Закрыть меню"
+            class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 transition"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-4 bg-white shadow-sm z-10 relative">
+          <div class="relative">
+            <svg
+              class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+            <input
+              type="text"
+              id="search-input"
+              aria-label="Найти хадис по номеру или смыслу"
+              placeholder="Поиск по смыслу..."
+              class="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c0a16b] focus:bg-white transition"
+            />
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto" id="hadiths-list-container">
+          <!-- Динамический список -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Основной контент -->
+    <main class="flex-1 overflow-y-auto relative w-full">
+      <div
+        class="max-w-md mx-auto p-4 min-h-full flex flex-col"
+        id="card-container" aria-busy="true"
+      >
+        <div
+          class="bg-white rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-6 flex-1 flex flex-col relative overflow-hidden gold-border"
+        >
+          <!-- Орнамент в углу -->
+          <svg
+            class="absolute top-0 right-0 w-32 h-32 text-[#c0a16b] opacity-10 pointer-events-none transform translate-x-8 -translate-y-8"
+            viewBox="0 0 100 100"
+            fill="currentColor"
+          >
+            <path d="M50 0L60 40L100 50L60 60L50 100L40 60L0 50L40 40Z" />
+          </svg>
+
+          <div class="relative z-10 flex-1 space-y-6">
+            <!-- Номер хадиса -->
+            <div class="flex items-center justify-between">
+              <div
+                class="gold-gradient text-white px-5 py-2 rounded-full font-bold text-sm shadow-md flex items-center space-x-2"
+              >
+                <span>Хадис №</span>
+                <span id="hadith-num" class="text-lg">1</span>
+              </div>
+              <button
+                id="copy-hadith" aria-label="Скопировать хадис"
+                class="p-2 text-slate-400 hover:text-[#c0a16b] bg-slate-50 rounded-full transition"
+                title="Скопировать всё"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="mode-tabs" role="tablist" aria-label="Режим просмотра">
+              <button type="button" id="practice-tab" role="tab" aria-selected="true" aria-controls="arabic-area">Самопроверка</button>
+              <button type="button" id="reading-tab" role="tab" aria-selected="false" aria-controls="arabic-area" tabindex="-1">Чтение</button>
+            </div>
+            <!-- Арабский текст -->
+            <div class="pt-2" id="arabic-area" role="tabpanel" aria-labelledby="practice-tab">
+              <div
+                class="arabic-text text-[26px] sm:text-[30px] text-[#064e3b] text-center"
+                id="arabic-text" lang="ar"
+                dir="rtl"
+              ><p class="loading-text" lang="ru" dir="ltr">Загружаем хадисы…</p></div>
+            </div>
+
+            <section class="practice-tools" id="practice-tools" aria-label="Проверка заучивания">
+              <div class="practice-meta"><span id="reveal-status" role="status" aria-live="polite">Текст скрыт</span><div class="size-buttons" aria-label="Размер арабского текста"><button id="smaller" aria-label="Уменьшить арабский текст">A−</button><button id="larger" aria-label="Увеличить арабский текст">A+</button></div></div>
+              <div class="practice-progress" aria-hidden="true"><div id="reading-bar"></div></div>
+              <p class="practice-hint" id="memory-hint">Сначала прочитайте по памяти,<br>затем откройте следующую строку.</p>
+              <div class="step-control" role="group" aria-label="Сколько строк открывать"><button id="step-one" aria-pressed="true">1 строка</button><button id="step-two" aria-pressed="false">2 строки</button></div>
+              <button id="reveal" class="reveal-button gold-gradient" disabled>Открыть строку <span aria-hidden="true">←</span></button>
+              <div class="secondary-actions"><button id="restart" disabled>Начать заново</button><button id="show-all" disabled>Открыть всё</button></div>
+              <button id="mark-done" class="mark-done" aria-pressed="false" disabled><span aria-hidden="true">✓</span> <span id="done-label">Отметить повторённым</span></button>
+            </section>
+            <!-- Разделитель -->
+            <div class="flex justify-center items-center py-2 opacity-30">
+              <div class="h-px bg-[#c0a16b] flex-1"></div>
+              <svg
+                class="w-6 h-6 text-[#c0a16b] mx-4"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2L15 10H23L16 15L19 23L12 18L5 23L8 15L1 10H9L12 2Z"
+                />
+              </svg>
+              <div class="h-px bg-[#c0a16b] flex-1"></div>
+            </div>
+
+            <!-- Перевод -->
+            <div>
+              <button id="toggle-translation" class="translation-toggle" aria-expanded="false" aria-controls="translation-panel">
+              <h3
+                class="text-[10px] font-bold uppercase tracking-widest text-[#c0a16b] mb-3"
+              >
+                Русский перевод
+              </h3><span id="translation-action">Показать <span aria-hidden="true">⌄</span></span>
+              </button>
+              <div id="translation-panel" hidden>
+              <p
+                class="text-slate-700 text-[15px] sm:text-[16px] leading-relaxed font-medium"
+                id="russian-text"
+              ></p>
+              </div>
+            </div>
+
+            <div class="source-links"><a id="arabic-source" href="assets/arabic-original.pdf" target="_blank" rel="noopener">Арабский оригинал ↗</a><a id="translation-source" href="assets/russian-translation.pdf" target="_blank" rel="noopener">Русская книга ↗</a></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Нижняя навигация -->
+    <div
+      class="bg-white border-t border-slate-200 px-4 py-3 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]"
+    >
+      <div class="max-w-md mx-auto flex gap-3">
+        <button
+          aria-label="Предыдущий хадис"
+          id="prev-btn"
+          class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 px-4 rounded-xl transition text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          <span>Назад</span>
+        </button>
+        <button
+          aria-label="Следующий хадис"
+          id="next-btn"
+          class="flex-1 gold-gradient text-white font-semibold py-3.5 px-4 rounded-xl transition shadow-lg shadow-[#c0a16b]/30 text-sm flex items-center justify-center space-x-2"
+        >
+          <span>Вперед</span>
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Уведомления (Toast) -->
+    <div
+      id="toast" role="status" aria-live="polite"
+      class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-5 py-3 rounded-full text-sm font-medium shadow-xl opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2"
+    >
+      <svg
+        class="w-5 h-5 text-green-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 13l4 4L19 7"
+        ></path>
+      </svg>
+      <span id="toast-msg">Скопировано</span>
+    </div>
+
+
+  </body>
+</html>

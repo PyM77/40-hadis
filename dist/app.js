@@ -1,212 +1,234 @@
 'use strict';
 const $ = id => document.getElementById(id);
-const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const KEY = 'sorok-practice-v1';
 let data = [], current = 1, revealed = 0, step = 1, scale = 1, mode = 'practice';
+let pendingRows = [], layoutFrame = 0, toastTimer, sidebarTimer, lastFocus;
+let sidebarOpen = false;
 let saved = { last: 1, done: [], days: {}, step: 1, scale: 1 };
-let toastTimer;
 try {
   const raw = JSON.parse(localStorage.getItem(KEY));
   if (raw && typeof raw === 'object') {
     saved.last = Number.isInteger(raw.last) && raw.last >= 1 && raw.last <= 40 ? raw.last : 1;
-    saved.done = Array.isArray(raw.done) ? [...new Set(raw.done.filter(n => Number.isInteger(n) && n >= 1 && n <= 40))] : [];
+    saved.done = Array.isArray(raw.done) ? [...new Set(raw.done.filter(validId))] : [];
     saved.days = raw.days && typeof raw.days === 'object' && !Array.isArray(raw.days) ? raw.days : {};
     saved.step = raw.step === 2 ? 2 : 1;
     saved.scale = Number.isFinite(raw.scale) ? Math.max(.85, Math.min(1.5, raw.scale)) : 1;
   }
-} catch { /* Browser storage is optional. */ }
+} catch { /* Storage is optional. */ }
 step = saved.step; scale = saved.scale;
+function validId(n) { return Number.isInteger(n) && n >= 1 && n <= 40; }
 function dayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function persist() {
   saved.last = current; saved.step = step; saved.scale = scale;
-  try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* Practice also works in private browsers. */ }
+  try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* Also works without storage. */ }
 }
 function notify(message) {
-  $('toast').textContent = message; $('toast').hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; }, 3000);
+  $('toast-msg').textContent = message;
+  $('toast').classList.remove('opacity-0', 'pointer-events-none');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.add('opacity-0', 'pointer-events-none'), 2500);
 }
 function renderList() {
-  const q = $('search').value.trim().toLocaleLowerCase('ru');
-  const items = data.filter(h => `${h.id} ${String(h.id).padStart(2,'0')} ${h.title} ${h.arabicTitle}`.toLocaleLowerCase('ru').includes(q));
-  $('hadith-list').replaceChildren();
+  const q = $('search-input').value.trim().toLocaleLowerCase('ru');
+  const items = data.filter(h => `${h.id} ${String(h.id).padStart(2,'0')} ${h.title} ${h.translation}`.toLocaleLowerCase('ru').includes(q));
+  const list = $('hadiths-list-container'); list.replaceChildren();
   if (!items.length) {
-    const p = document.createElement('p'); p.className = 'empty-search'; p.textContent = 'Хадис не найден. Попробуйте номер от 1 до 40 или другую тему.';
-    $('hadith-list').append(p); return;
+    const empty = document.createElement('p'); empty.className = 'p-8 text-center text-sm text-slate-500 font-medium';
+    empty.textContent = 'Ничего не найдено'; list.append(empty); return;
   }
   for (const h of items) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = `hadith-item${h.id === current ? ' active' : ''}`;
-    b.dataset.id = h.id;
-    if (h.id === current) b.setAttribute('aria-current', 'true');
-    const num = document.createElement('span'); num.className = 'item-number'; num.textContent = String(h.id).padStart(2,'0');
-    const title = document.createElement('span'); title.className = 'item-title'; title.textContent = h.title;
-    b.append(num, title);
-    if (saved.done.includes(h.id)) { const check = document.createElement('span'); check.innerHTML = icon('check'); check.firstChild.classList.add('item-check'); check.setAttribute('aria-label', 'Повторён'); b.append(check); }
-    b.addEventListener('click', () => select(h.id)); $('hadith-list').append(b);
+    const item = document.createElement('button'); item.type = 'button'; item.dataset.id = h.id;
+    item.className = `sidebar-item p-4 cursor-pointer flex items-center space-x-4 transition border-b border-[#c0a16b]/10 hover:bg-[#fef3c7]/40 ${h.id === current ? 'bg-[#fef3c7]/60 border-l-4 border-l-[#c0a16b]' : ''}`;
+    if (h.id === current) item.setAttribute('aria-current','true');
+    const num = document.createElement('div'); num.className = 'w-10 h-10 rounded-full gold-gradient flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0';
+    num.textContent = h.id;
+    const body = document.createElement('div'); body.className = 'flex-1 overflow-hidden';
+    const title = document.createElement('h4'); title.className = 'font-bold text-[#064e3b] text-[15px] leading-tight mb-0.5';
+    title.textContent = h.title + (saved.done.includes(h.id) ? ' ✓' : '');
+    const preview = document.createElement('p'); preview.className = 'text-[11px] text-slate-400 truncate';
+    const quote = h.translation.indexOf('«');
+    const text = quote < 0 ? h.translation : h.translation.slice(quote+1).replace('»','');
+    preview.textContent = text.length > 55 ? text.slice(0,55) + '…' : text;
+    body.append(title, preview); item.append(num, body);
+    item.addEventListener('click', () => { select(h.id); closeSidebar(); }); list.append(item);
   }
 }
 function renderProgress() {
-  const today = Array.isArray(saved.days[dayKey()]) ? new Set(saved.days[dayKey()].filter(n => Number.isInteger(n) && n >= 1 && n <= 40)).size : 0;
-  $('today-count').innerHTML = `${today} <span>/ 40</span>`;
-  $('today-bar').style.width = `${today/40*100}%`;
   const done = Array.isArray(saved.days[dayKey()]) && saved.days[dayKey()].includes(current);
-  $('mark-done').classList.toggle('completed', done);
   $('mark-done').setAttribute('aria-pressed', String(done));
-  $('mark-done').querySelector('span').textContent = done ? 'Повторён сегодня · снять' : 'Отметить повторённым';
-  $('completion-title').textContent = done ? 'Ещё один шаг к прочному знанию' : 'Получилось вспомнить?';
-  $('completion-description').textContent = done ? 'Хадис отмечен. К нему можно вернуться в любое время.' : 'Отметьте хадис после самостоятельного повторения.';
+  $('done-label').textContent = done ? 'Повторён сегодня · снять' : 'Отметить повторённым';
+  const n = Array.isArray(saved.days[dayKey()]) ? new Set(saved.days[dayKey()].filter(validId)).size : 0;
+  $('menu-progress').textContent = `Повторено сегодня: ${n} / 40 · Сохраняется на устройстве`;
 }
-// `revealed` is a word boundary, so resizing never exposes a hidden word.
-let pendingRows = [], layoutFrame = 0;
-function wrapArabicWords(words, measure, available) {
+// The reveal boundary is stored in words, never in visual lines. Reflowing or
+// changing the font cannot reveal new words or lose an already opened passage.
+function wrapWords(words, measure, width) {
   const rows = [];
   let row = [];
   for (const word of words) {
-    const trial = [...row, word].join(' ');
-    measure.textContent = trial;
-    if (row.length && measure.getBoundingClientRect().width > available) {
-      rows.push({ text: row.join(' '), words: row.length });
-      row = [word];
+    measure.textContent = [...row, word].join(' ');
+    if (row.length && measure.getBoundingClientRect().width > width) {
+      rows.push({ text: row.join(' '), words: row.length }); row = [word];
     } else row.push(word);
   }
   if (row.length) rows.push({ text: row.join(' '), words: row.length });
   return rows;
 }
-function renderLines() {
+function renderArabic() {
   if (!data.length) return;
-  const h = data[current-1];
-  const words = h.arabicText.trim().split(/\s+/u);
-  revealed = Math.min(revealed, words.length);
-  $('lines').style.setProperty('--arabic-scale', scale);
-  const measure = document.createElement('span');
-  measure.className = 'arabic-content arabic-measure';
-  measure.setAttribute('aria-hidden', 'true');
-  measure.dir = 'rtl'; measure.lang = 'ar';
-  measure.style.setProperty('--arabic-scale', scale);
+  const target = $('arabic-text'), text = data[current-1].arabicText;
+  target.style.setProperty('--arabic-scale',scale);
+  $('practice-tools').hidden = mode !== 'practice';
+  if (mode === 'reading') { target.textContent = text; return; }
+  const words = text.trim().split(/\s+/u);
+  revealed = Math.min(revealed,words.length);
+  const measure = document.createElement('span'); measure.className = 'arabic-text arabic-measure';
+  measure.dir = 'rtl'; measure.lang = 'ar'; measure.setAttribute('aria-hidden','true');
+  // Copy resolved typography so measurement also matches responsive breakpoints.
+  const font = getComputedStyle(target);
+  for (const prop of ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','wordSpacing','fontKerning','fontFeatureSettings','fontVariationSettings']) measure.style[prop] = font[prop];
   document.body.append(measure);
-  const gutter = innerWidth <= 480 ? 17 : 26;
-  const available = Math.max(100, $('lines').clientWidth - gutter - 3);
-  const opened = wrapArabicWords(words.slice(0, revealed), measure, available);
-  pendingRows = wrapArabicWords(words.slice(revealed), measure, available);
-  measure.remove();
-  const remaining = pendingRows.length;
-  const total = opened.length + remaining;
+  const width = Math.max(100,target.clientWidth-1);
+  const opened = wrapWords(words.slice(0,revealed),measure,width);
+  pendingRows = wrapWords(words.slice(revealed),measure,width); measure.remove();
   const fragment = document.createDocumentFragment();
-  for (let i=0; i<opened.length+Math.min(remaining,3); i++) {
-    const row = document.createElement('div'); row.className = 'arabic-line';
-    const num = document.createElement('span'); num.className = 'line-index';
-    num.setAttribute('aria-hidden','true'); num.textContent = String(i+1).padStart(2,'0'); row.append(num);
-    if (i < opened.length) {
-      const text = document.createElement('p'); text.className = 'arabic-content';
-      text.textContent = opened[i].text;
-      row.append(text);
-    } else {
-      row.setAttribute('aria-label',`Строка ${i+1} скрыта`);
-      const skeleton = document.createElement('div'); skeleton.className = 'hidden-line'; skeleton.setAttribute('aria-hidden','true');
-      const widths = [[16,10,22,13,17,8],[12,19,9,16,23,9],[22,14,11,18,9,13]][i%3];
-      widths.forEach(w=>{const s=document.createElement('span');s.style.width=`${w}%`;skeleton.append(s);});
-      row.append(skeleton);
+  for (const line of opened) {
+    const p = document.createElement('p'); p.className = 'arabic-row'; p.textContent = line.text; fragment.append(p);
+  }
+  // One placeholder keeps the next-step control near the recalled passage.
+  for (let i=0;i<Math.min(1,pendingRows.length);i++) {
+    const row = document.createElement('div'); row.className = 'arabic-placeholder'; row.setAttribute('aria-label',`Строка ${opened.length+i+1} скрыта`);
+    for (const w of [[20,12,24,17],[14,25,12,20],[22,15,18,14]][i]) {
+      const s = document.createElement('span'); s.style.width = `${w}%`; s.setAttribute('aria-hidden','true'); row.append(s);
     }
     fragment.append(row);
   }
-  if (remaining>3) {
-    const more=document.createElement('div'); more.className='hidden-more';
-    more.textContent=`Ещё ${remaining-3} ${plural(remaining-3,'строка скрыта','строки скрыты','строк скрыто')}`;
-    more.lang='ru';more.dir='ltr';fragment.append(more);
+  if (pendingRows.length>1) {
+    const more = document.createElement('div'); more.className = 'hidden-more'; more.lang = 'ru'; more.dir = 'ltr';
+    more.textContent = `Ещё скрыто строк: ${pendingRows.length-1}`; fragment.append(more);
   }
-  $('lines').replaceChildren(fragment);
-  $('reveal-status').textContent = `Открыто ${opened.length} из ${total} ${plural(total,'строки','строк','строк')}`;
+  target.replaceChildren(fragment);
+  const total = opened.length+pendingRows.length;
+  $('reveal-status').textContent = `Открыто строк: ${opened.length} / ${total}`;
   $('reading-bar').style.width = `${revealed/words.length*100}%`;
-  $('reveal').disabled = remaining === 0;
-  $('reveal').querySelector('span').textContent = remaining === 0 ? 'Весь хадис открыт' : (step === 1 || remaining === 1 ? 'Открыть строку' : 'Открыть 2 строки');
-  $('show-all').disabled = remaining === 0; $('restart').disabled = revealed === 0;
-  $('memory-hint').hidden = remaining === 0;
-  if (remaining === 0) {
-    const end = document.createElement('div'); end.className='end-of-hadith';end.lang='ru';end.dir='ltr';
-    end.innerHTML=`<span>✧</span> Хадис открыт полностью. Начните заново, чтобы повторить.`; $('lines').append(end);
-  }
-  $('step-one').classList.toggle('selected',step===1); $('step-two').classList.toggle('selected',step===2);
-  $('step-one').setAttribute('aria-pressed',String(step===1)); $('step-two').setAttribute('aria-pressed',String(step===2));
-  $('smaller').disabled = scale<=.85; $('larger').disabled=scale>=1.5;
+  $('memory-hint').hidden = pendingRows.length === 0;
+  $('reveal').disabled = pendingRows.length === 0;
+  $('reveal').textContent = pendingRows.length === 0 ? 'Весь хадис открыт ✓' : step === 2 && pendingRows.length > 1 ? 'Открыть 2 строки ←' : 'Открыть строку ←';
+  $('show-all').disabled = pendingRows.length === 0; $('restart').disabled = revealed === 0;
+  for (const [id,active] of [['step-one',step===1],['step-two',step===2]]) $(id).setAttribute('aria-pressed',String(active));
+  $('smaller').disabled = scale <= .85; $('larger').disabled = scale >= 1.5;
 }
-function scheduleArabicLayout() {
-  cancelAnimationFrame(layoutFrame);
-  layoutFrame = requestAnimationFrame(() => { if (data.length && mode === 'practice') renderLines(); });
+function scheduleLayout() {
+  cancelAnimationFrame(layoutFrame); layoutFrame = requestAnimationFrame(renderArabic);
 }
-
-function plural(n,one,few,many) { const a=n%100,b=n%10;return a>=11&&a<=14?many:b===1?one:b>=2&&b<=4?few:many; }
 function setMode(next) {
-  mode=next; const practice=mode==='practice';
-  $('practice-panel').hidden=!practice; $('translation-panel').hidden=practice;
-  for (const [id,active] of [['practice-tab',practice],['translation-tab',!practice]]) {
-    $(id).classList.toggle('active',active);$(id).setAttribute('aria-selected',String(active));$(id).tabIndex=active?0:-1;
+  mode = next;
+  for (const id of ['practice','reading']) {
+    $(id+'-tab').setAttribute('aria-selected',String(id===mode)); $(id+'-tab').tabIndex = id===mode ? 0 : -1;
   }
-  document.querySelector('.size-control').hidden=!practice;
-  if (practice && data.length) scheduleArabicLayout();
+  $('arabic-area').setAttribute('aria-labelledby',mode+'-tab'); renderArabic();
+}
+function setTranslation(open) {
+  $('toggle-translation').setAttribute('aria-expanded',String(open)); $('translation-panel').hidden = !open;
+  $('translation-action').textContent = open ? 'Скрыть ⌃' : 'Показать ⌄';
 }
 function select(id, updateHash = true) {
   if (!data.length) return;
-  current=Math.max(1,Math.min(40,id)); revealed=0;
-  const h=data[current-1];
-  $('hadith-number').textContent=String(current).padStart(2,'0');
-  $('hadith-label').textContent=`ХАДИС ${current} ИЗ 40`;
-  $('hadith-title').textContent=h.title; $('arabic-title').textContent=h.arabicTitle;
-  $('translation-text').replaceChildren();
-  for(const text of h.translation.split('\n\n')){const p=document.createElement('p');p.textContent=text;$('translation-text').append(p);}
-  $('translation-source').href=`assets/russian-translation.pdf#page=${h.translationPage}`;
-  $('arabic-source').href=`assets/arabic-original.pdf#page=${h.arabicPage}`;
-  $('previous').disabled=current===1; $('next').disabled=current===40;
-  $('page-position').innerHTML=`${String(current).padStart(2,'0')} <span>/ 40</span>`;
-  $('mark-done').disabled=false;
-  document.title=`${current}. ${h.title} — Сорок`;
-  setMode('practice');renderLines();renderList();renderProgress();persist();closeMenu();
-  if(updateHash) history.replaceState(null,'',`#${current}`);
+  current = Math.max(1,Math.min(40,id)); revealed = 0;
+  const h = data[current-1];
+  $('hadith-num').textContent = current; $('counter').textContent = `${current} / 40`;
+  $('russian-text').textContent = h.translation;
+  $('arabic-source').href = `assets/arabic-original.pdf#page=${h.arabicPage}`;
+  $('translation-source').href = `assets/russian-translation.pdf#page=${h.translationPage}`;
+  $('prev-btn').disabled = current === 1; $('next-btn').disabled = current === 40;
+  $('mark-done').disabled = false;
+  document.title = `${current}. ${h.title} — 40 Хадисов`;
+  setTranslation(false); renderArabic(); renderList(); renderProgress(); persist();
+  document.querySelector('main').scrollTop = 0;
+  if (updateHash) history.replaceState(null,'',`#${current}`);
+  const card = $('card-container'); card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
 }
-function closeMenu(){ $('sidebar').classList.remove('open');$('drawer-overlay').hidden=true;$('open-menu').setAttribute('aria-expanded','false');document.body.classList.remove('menu-open'); }
-$('open-menu').setAttribute('aria-expanded','false');$('open-menu').setAttribute('aria-controls','sidebar');
-$('open-menu').addEventListener('click',()=>{$('sidebar').classList.add('open');$('drawer-overlay').hidden=false;$('open-menu').setAttribute('aria-expanded','true');document.body.classList.add('menu-open');$('close-menu').focus();});
-$('close-menu').addEventListener('click',()=>{closeMenu();$('open-menu').focus();});$('drawer-overlay').addEventListener('click',closeMenu);
-$('search').addEventListener('input',renderList);
-$('reveal').addEventListener('click',()=>{ if(!data.length)return;revealed+=pendingRows.slice(0,step).reduce((sum,row)=>sum+row.words,0);renderLines();requestAnimationFrame(()=>$('reveal').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})); });
-$('show-all').addEventListener('click',()=>{if(!data.length)return;revealed=data[current-1].arabicText.trim().split(/\s+/u).length;renderLines();notify('Весь хадис открыт для сверки');});
-$('restart').addEventListener('click',()=>{revealed=0;renderLines();$('practice-card').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});notify('Текст скрыт. Вспомните хадис заново.');});
-$('step-one').addEventListener('click',()=>{step=1;renderLines();persist();});$('step-two').addEventListener('click',()=>{step=2;renderLines();persist();});
-$('smaller').addEventListener('click',()=>{scale=Math.max(.85,+(scale-.1).toFixed(2));renderLines();persist();});$('larger').addEventListener('click',()=>{scale=Math.min(1.5,+(scale+.1).toFixed(2));renderLines();persist();});
-$('practice-tab').addEventListener('click',()=>setMode('practice'));$('translation-tab').addEventListener('click',()=>setMode('translation'));
-for(const id of ['practice-tab','translation-tab']) $(id).addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?'practice':e.key==='End'?'translation':mode==='practice'?'translation':'practice';setMode(next);$(next+'-tab').focus();}});
-$('random').addEventListener('click',()=>{if(!data.length)return;let id=1+Math.floor(Math.random()*39);if(id>=current)id++;select(id);notify(`Хадис ${id} — новая практика`);});
-$('previous').addEventListener('click',()=>{if(current>1)select(current-1);});$('next').addEventListener('click',()=>{if(current<40)select(current+1);});
+function openSidebar() {
+  clearTimeout(sidebarTimer); sidebarOpen = true; lastFocus = document.activeElement;
+  const el = $('sidebar'); el.classList.remove('hidden','pointer-events-none'); el.setAttribute('aria-hidden','false');
+  $('open-menu').setAttribute('aria-expanded','true'); $('search-input').value = ''; renderList();
+  requestAnimationFrame(() => { if(sidebarOpen) {el.classList.remove('opacity-0');$('sidebar-content').classList.remove('-translate-x-full');} });
+  $('close-menu').focus();
+}
+function closeSidebar() {
+  clearTimeout(sidebarTimer); sidebarOpen = false; $('sidebar').classList.add('opacity-0','pointer-events-none');
+  $('sidebar-content').classList.add('-translate-x-full'); $('sidebar').setAttribute('aria-hidden','true'); $('open-menu').setAttribute('aria-expanded','false');
+  sidebarTimer = setTimeout(() => { if(!sidebarOpen) $('sidebar').classList.add('hidden'); },300);
+  (lastFocus || $('open-menu')).focus();
+}
+$('open-menu').addEventListener('click',openSidebar); $('close-menu').addEventListener('click',closeSidebar);
+$('sidebar').addEventListener('click',e=>{if(e.target===$('sidebar'))closeSidebar();});
+$('search-input').addEventListener('input',renderList);
+$('practice-tab').addEventListener('click',()=>setMode('practice')); $('reading-tab').addEventListener('click',()=>setMode('reading'));
+for (const id of ['practice','reading']) $(id+'-tab').addEventListener('keydown',e=>{
+  if (['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) {e.preventDefault();const next=e.key==='Home'?'practice':e.key==='End'?'reading':mode==='practice'?'reading':'practice';setMode(next);$(next+'-tab').focus();}
+});
+$('toggle-translation').addEventListener('click',()=>setTranslation($('translation-panel').hidden));
+$('reveal').addEventListener('click',()=>{if(!data.length)return;revealed+=pendingRows.slice(0,step).reduce((n,row)=>n+row.words,0);renderArabic();$('reveal').scrollIntoView({block:'nearest',behavior:'auto'});});
+$('show-all').addEventListener('click',()=>{if(!data.length)return;revealed=data[current-1].arabicText.trim().split(/\s+/u).length;renderArabic();});
+$('restart').addEventListener('click',()=>{revealed=0;renderArabic();document.querySelector('main').scrollTop=0;notify('Текст скрыт. Вспомните хадис заново.');});
+$('step-one').addEventListener('click',()=>{step=1;renderArabic();persist();}); $('step-two').addEventListener('click',()=>{step=2;renderArabic();persist();});
+$('smaller').addEventListener('click',()=>{scale=Math.max(.85,+(scale-.1).toFixed(2));renderArabic();persist();});
+$('larger').addEventListener('click',()=>{scale=Math.min(1.5,+(scale+.1).toFixed(2));renderArabic();persist();});
+$('prev-btn').addEventListener('click',()=>{if(current>1)select(current-1);}); $('next-btn').addEventListener('click',()=>{if(current<40)select(current+1);});
 $('mark-done').addEventListener('click',()=>{
-  const day=dayKey();const done=Array.isArray(saved.days[day]) && saved.days[day].includes(current);
-  if(done){saved.days[day]=saved.days[day].filter(n=>n!==current);if(!Object.values(saved.days).some(ids=>Array.isArray(ids)&&ids.includes(current)))saved.done=saved.done.filter(n=>n!==current);notify('Отметка снята');}
-  else {if(!saved.done.includes(current))saved.done.push(current);saved.days[day]=[...new Set([...(Array.isArray(saved.days[day])?saved.days[day]:[]),current])];notify('Хадис отмечен как повторённый');}
-  persist();renderList();renderProgress();
+  const day=dayKey(), ids=Array.isArray(saved.days[day])?saved.days[day].filter(validId):[],done=ids.includes(current);
+  saved.days[day]=done?ids.filter(n=>n!==current):[...new Set([...ids,current])];
+  if(done){if(!Object.values(saved.days).some(a=>Array.isArray(a)&&a.includes(current)))saved.done=saved.done.filter(n=>n!==current);}
+  else if(!saved.done.includes(current))saved.done.push(current);
+  renderProgress();renderList();persist();notify(done?'Отметка снята':'Хадис отмечен как повторённый');
 });
-$('about-button').addEventListener('click',()=>$('about-dialog').showModal());$('close-about').addEventListener('click',()=>$('about-dialog').close());
-$('about-dialog').addEventListener('click',e=>{if(e.target===$('about-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
-window.addEventListener('hashchange',()=>{const n=Number(location.hash.slice(1));if(Number.isInteger(n)&&n>=1&&n<=40)select(n,false);});
+$('copy-hadith').addEventListener('click',async()=>{
+  if(!data.length)return;
+  const h=data[current-1],text=`Хадис №${h.id}\n\n${h.arabicText}\n\nПеревод Абу Аделя:\n${h.translation}`;
+  try {
+    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    else {
+      const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;top:0;left:-10000px';document.body.append(area);area.select();
+      const copied=document.execCommand('copy');area.remove();$('copy-hadith').focus();if(!copied)throw Error('copy');
+    }
+    notify('Хадис скопирован полностью');
+  }catch{notify('Не удалось скопировать. Выделите текст вручную.');}
+});
+window.addEventListener('hashchange',()=>{const n=Number(location.hash.slice(1));if(validId(n))select(n,false);});
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&$('sidebar').classList.contains('open')){closeMenu();$('open-menu').focus();return;}
-  if(e.key==='Tab'&&$('sidebar').classList.contains('open')){const els=[...$('sidebar').querySelectorAll('a,button,input')].filter(el=>el.offsetParent!==null);if(e.shiftKey&&document.activeElement===els[0]){e.preventDefault();els.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===els.at(-1)){e.preventDefault();els[0].focus();}return;}
-  if(['INPUT','TEXTAREA','BUTTON','A'].includes(e.target.tagName)||$('about-dialog').open)return;
-  if(e.key==='/'){e.preventDefault();if(innerWidth<=800)$('open-menu').click();$('search').focus();}
+  if(sidebarOpen){
+    if(e.key==='Escape'){e.preventDefault();closeSidebar();}
+    if(e.key==='Tab') {const els=[...$('sidebar-content').querySelectorAll('button,input,a')].filter(el=>el.offsetParent!==null);if(e.shiftKey&&document.activeElement===els[0]){e.preventDefault();els.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===els.at(-1)){e.preventDefault();els[0].focus();}}
+    return;
+  }
+  if(['INPUT','TEXTAREA','BUTTON','A'].includes(e.target.tagName))return;
   if(e.code==='Space'&&mode==='practice'&&!$('reveal').disabled){e.preventDefault();$('reveal').click();}
+  if(e.key==='ArrowRight'&&current<40)select(current+1);
+  if(e.key==='ArrowLeft'&&current>1)select(current-1);
 });
-fetch('assets/hadiths.json?v=arabic-text-1').then(r=>{if(!r.ok)throw Error('Не удалось загрузить тексты');return r.json();}).then(items=>{
-  if(!Array.isArray(items)||items.length!==40||items.some(h=>typeof h.arabicText!=='string'||!h.arabicText.trim()))throw Error('Библиотека недоступна');
-  data=items;const hash=Number(location.hash.slice(1));select(Number.isInteger(hash)&&hash>=1&&hash<=40?hash:saved.last);
-  $('practice-card').setAttribute('aria-busy','false');
-  document.fonts.ready.then(scheduleArabicLayout);
+let touchStart;
+const main=document.querySelector('main');
+main.addEventListener('touchstart',e=>{touchStart={x:e.changedTouches[0].screenX,y:e.changedTouches[0].screenY};},{passive:true});
+main.addEventListener('touchend',e=>{
+  if(!touchStart||sidebarOpen||document.getSelection()?.toString())return;
+  const dx=e.changedTouches[0].screenX-touchStart.x,dy=e.changedTouches[0].screenY-touchStart.y;touchStart=null;
+  if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){if(dx<0&&current<40)select(current+1);if(dx>0&&current>1)select(current-1);}
+},{passive:true});
+const progress=document.createElement('p');progress.id='menu-progress';progress.className='menu-progress';$('sidebar-content').append(progress);
+const random=document.createElement('button');random.type='button';random.id='random';random.className='menu-random';random.textContent='Случайный хадис ↗';
+random.addEventListener('click',()=>{if(!data.length)return;let id=1+Math.floor(Math.random()*39);if(id>=current)id++;select(id);closeSidebar();});
+$('sidebar-content').insertBefore(random,progress);
+fetch('assets/hadiths.json?v=reference-1').then(r=>{if(!r.ok)throw Error('load');return r.json();}).then(items=>{
+  if(!Array.isArray(items)||items.length!==40||items.some((h,i)=>h.id!==i+1||typeof h.arabicText!=='string'||!h.arabicText.trim()))throw Error('library');
+  data=items;const id=Number(location.hash.slice(1));select(validId(id)?id:saved.last);$('card-container').setAttribute('aria-busy','false');document.fonts.ready.then(scheduleLayout);
 }).catch(()=>{
-  $('practice-card').setAttribute('aria-busy','false');$('lines').innerHTML='<p class="error-message" lang="ru" dir="ltr">Не удалось загрузить библиотеку. Обновите страницу или откройте оригинал книги по ссылке ниже.</p>';
-  $('hadith-list').innerHTML='<p class="empty-search">Ошибка загрузки. Обновите страницу, чтобы попробовать снова.</p>';
+  $('card-container').setAttribute('aria-busy','false');$('arabic-text').replaceChildren();
+  const p=document.createElement('p');p.className='loading-text';p.lang='ru';p.dir='ltr';p.textContent='Не удалось загрузить хадисы. Обновите страницу или откройте оригинал книги по ссылке ниже.';$('arabic-text').append(p);
 });
-
-let observedArabicWidth = 0;
-new ResizeObserver(entries => {
-  const width = entries[0].contentRect.width;
-  if (Math.abs(width-observedArabicWidth)>.5) {observedArabicWidth=width;if(mode==='practice')scheduleArabicLayout();}
-}).observe($('lines'));
-document.fonts.addEventListener('loadingdone',scheduleArabicLayout);
+let previousWidth=0;
+new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(Math.abs(width-previousWidth)>.5){previousWidth=width;scheduleLayout();}}).observe($('arabic-text'));
+document.fonts.addEventListener('loadingdone',scheduleLayout);

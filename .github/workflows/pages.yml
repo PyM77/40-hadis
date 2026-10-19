@@ -26,6 +26,10 @@ jobs:
         run: node --check dist/app.js
       - name: Check text library
         run: python3 scripts/check_content.py
+      - name: Check compiled design
+        run: |
+          python3 scripts/build_styles.py
+          git diff --exit-code -- dist/style.css
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload website
