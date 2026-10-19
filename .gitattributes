@@ -1,0 +1,2 @@
+# Preserve the user-selected reference snapshot byte-for-byte (CRLF included).
+content/reference/index.html -text whitespace=cr-at-eol

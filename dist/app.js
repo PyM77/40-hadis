@@ -222,7 +222,7 @@ const progress=document.createElement('p');progress.id='menu-progress';progress.
 const random=document.createElement('button');random.type='button';random.id='random';random.className='menu-random';random.textContent='Случайный хадис ↗';
 random.addEventListener('click',()=>{if(!data.length)return;let id=1+Math.floor(Math.random()*39);if(id>=current)id++;select(id);closeSidebar();});
 $('sidebar-content').insertBefore(random,progress);
-fetch('assets/hadiths.json?v=reference-1').then(r=>{if(!r.ok)throw Error('load');return r.json();}).then(items=>{
+fetch('assets/hadiths.json?v=reference-arabic-2').then(r=>{if(!r.ok)throw Error('load');return r.json();}).then(items=>{
   if(!Array.isArray(items)||items.length!==40||items.some((h,i)=>h.id!==i+1||typeof h.arabicText!=='string'||!h.arabicText.trim()))throw Error('library');
   data=items;const id=Number(location.hash.slice(1));select(validId(id)?id:saved.last);$('card-container').setAttribute('aria-busy','false');document.fonts.ready.then(scheduleLayout);
 }).catch(()=>{
